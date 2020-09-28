@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous">
+</script>
+
+<p>New form</p>
+{% from "_formhelpers.html" import render_field %}
+<form id="excel_form">
+  <dl>
+      {{ render_field(form.id_key) }}
+      {{ render_field(form.x_axis) }}
+      {{ render_field(form.hue_key) }}
+      {{ render_field(form.yellow_hline) }}
+      {{ render_field(form.red_hline) }}
+      {{ render_field(form.excel_field) }}
+      
+  </dl>
+  <p><input type="submit" value="Genereate Table">
+</form>
+
+<!--
+<p>Old form</p>
+
+<form id=excel_form>
+
+    <label for="id_key">id_key:</label><br>
+    <input type="text" id="id_key" name="id_key" value="id"><br>
+    <label for="y">Y axis key:</label><br>
+    <input type="text" id="y" name="y" value="value"><br>
+    <label for="hue">Hue (farge) key:</label><br>
+    <input type="text" id="hue" name="hue" value="time"><br>
+    <label for="x">X axis key:</label><br>
+    <input type="text" id="x" name="x" value="key"><br>
+    <label for="x">yellow_hline:</label><br>
+    <input type="number" id="yellow_hline" name="yellow_hline" value="75"><br>
+    <label for="x">Red line:</label><br>
+    <input type="number" id="red_hline" name="red_hline" value="90"><br>
+    <label for="excel_data">Paste from Excel:</label><br>
+    <textarea name="excel_data" style="width:250px;height:150px;">
+id	value	time	key
+1	71	t1	sos
+2	62	t1	emo
+3	82	t1	hyp
+4	73	t2	sos
+5	94	t2	emo
+6	52	t2	hyp
+        </textarea><br>
+    <input type="submit" value="Genereate Table" />
+</form>
+-->
+
+
+<p>SVG</p>
+<br>
+<div id="chart">Chart placeholder</div>
+
+<script>
+    $SCRIPT_ROOT = {{request.script_root | tojson | safe}};
+    var data_tsv;
+    var data_json;
+
+    function generateTable(ev) {
+        console.log(ev);
+        ev.preventDefault();
+        $.ajax({
+            method: 'POST',
+            url: {{url_for('excelpaste') | tojson}},
+            data: $(this).serialize()
+        }).done(addSvg);
+        var data = $('textarea[name=excel_data]').val();
+        data_tsv = data;
+        var rows = data.split("\n");
+
+        var table = $('<table />');
+
+        for (var y in rows) {
+            var cells = rows[y].split("\t");
+            var row = $('<tr />');
+            for (var x in cells) {
+                row.append('<td><div contenteditable><input type="text" name="name_x" value=' + cells[x] +
+                    '/></div></td>');
+            }
+            // table.append(row);
+        }
+
+        // Insert into DOM
+        $('#excel_table').html(table);
+    }
+
+    function logDone(data) {
+        console.log(data);
+    }
+
+    function addSvg(data) {
+        $('#chart').html(data);
+    }
+
+    $('#excel_form').on('submit', generateTable);
+</script>
+
+</html>
