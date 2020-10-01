@@ -42,8 +42,8 @@ def hello_world():
 
 
 def json_to_svg(df, settings=None):
-    print('json to svg')
-    print(request.form)
+    #print('json to svg')
+    #print(request.form)
     fig=make_graph(data=df, settings=settings)
     fig_file=make_file(fig=fig)
     return fig_file

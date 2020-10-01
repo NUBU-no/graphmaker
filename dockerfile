@@ -8,8 +8,8 @@ WORKDIR /app
 # copy the dependencies file to the app directory
 COPY requirements.txt .
 
-RUN apt-get update
-RUN apt-get install gunicorn
+#RUN apt-get update
+RUN pip install gunicorn
 # install dependencies
 RUN pip install -r requirements.txt
 
@@ -19,5 +19,5 @@ COPY . .
 # command to run on container start
 # ENTRYPOINT [ "python" ]
 
-CMD ["flask", "run"]
-#CMD "gunicorn -b :8080 main:app"
+#CMD ["flask", "run"]
+CMD ["gunicorn", "-b", ":8080", "app:app"]
