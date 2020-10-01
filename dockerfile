@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM python:3.8
+FROM python:3.8-slim
 
 # set the working directory in the container
 WORKDIR /app
@@ -20,4 +20,4 @@ COPY . .
 # ENTRYPOINT [ "python" ]
 
 #CMD ["flask", "run"]
-CMD ["gunicorn", "-b", ":8080", "app:app"]
+CMD exec gunicorn -b :$PORT app:app

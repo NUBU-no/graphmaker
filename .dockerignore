@@ -7,3 +7,12 @@
 ###Artifacts###
 artifacts/
 buildfiles/
+
+###dockerfile###
+dockerfile
+
+###pyfiles###
+*.pyc
+*.pyo
+*.pyd
+__pycache__
