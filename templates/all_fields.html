@@ -1,0 +1,13 @@
+
+{% extends '_base.html' %}
+
+{% block body %}
+{% from "_formhelpers.html" import render_field %}
+<form id="excel_form">
+    {% for field in form%}
+  <dl> {{render_field(field)}}</dl>
+    {% endfor %}
+
+  <p><input type="submit" value="Submit">
+</form>
+{% endblock %}
