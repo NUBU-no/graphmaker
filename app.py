@@ -1,4 +1,4 @@
-from wtforms.fields.core import SelectField
+from wtforms.fields.core import FieldList, SelectField
 from wtforms.widgets.core import TextArea
 from graphmaker.maker import make_graph, make_file
 from flask import Flask, json, request, jsonify, render_template, send_file
@@ -28,27 +28,48 @@ class Graph_form(Form):
         validators.NumberRange(min=-999999, max=999999)
         ])
 
-    excel_field=StringField('Excel Paste', widget=TextArea(), default='''id	value	time	key
-1	71	t1	sos
-2	62	t1	emo
-3	82	t1	hyp
-4	73	t2	sos
-5	94	t2	emo
-6	52	t2	hyp''')
+    excel_field=StringField('Excel Paste', widget=TextArea(), default='id\tvalue\ttime\tkey\n1\t71\tt1\tsos\n2\t62\tt1\temo\n3\t82\tt1\thyp\n4\t73\tt2\tsos\n5\t94\tt2\temo\n6\t52\tt2\thyp')
+
+class Rcads_q(Form):
+    text = StringField('Text')
+    score = IntegerField('Score', validators=[validators.NumberRange(min=0,max=5)])
 
 class Rcads_form(Form):
-    q1 = IntegerField('rcads spm 1', validators=[validators.NumberRange(min=0,max=5)])
-    q2 = IntegerField('rcads spm 2', validators=[validators.NumberRange(min=0,max=5)])
+    age = IntegerField()
+    qs = FieldList(FormField(Rcads_q))
+    #qs = FieldList(IntegerField('score'), min_entries=6)
 
 
-class Questionnaire_form(Form):
+class Pre_questionnaire_form(Form):
+    age = IntegerField()
     questionnaire = SelectField('sdq, Eiberg or RCADS', choices=['SDQ','RCADS','Eiberg'])
+    excel_field=StringField('Excel Paste', widget=TextArea(), default='1\t2\t3\t3\t0\t0')
     #inline_form = FormField()
 
 
 @ app.route('/')
 def hello_world():
     return 'Hello, World!'
+
+
+@app.route('/pre', methods=['GET', 'POST'])
+def pre_q_form():
+    form = Pre_questionnaire_form(request.form)
+    if request.method == 'POST' and form.validate():
+        generated_form = Rcads_form()
+        generated_form.age.data = form.age.data
+        scores = form.excel_field.data.split('\t')
+        with app.open_resource('static/items.txt') as f:
+            questiontexts = f.read().split(b'\n')
+        for score, text in zip(scores, questiontexts):
+            scoreForm = Rcads_q()
+            scoreForm.score.data=score
+            scoreForm.text.data=str(text)
+            generated_form.qs.append_entry(data=scoreForm.data)
+        return render_template('rcads.html', form = generated_form)
+    else:
+        return render_template('preforms.html', form=form)
+    
 
 
 def json_to_svg(df, settings=None):
@@ -83,7 +104,7 @@ def single_items():
     if request.method == 'POST' and form.validate():
         return 'You posted'
     else:
-        return render_template('all_fields.html', form=form)
+        return render_template('rcads.html', form=form)
 
 @app.route('/questionsexample')
 def example():

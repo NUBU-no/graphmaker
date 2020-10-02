@@ -1,0 +1,9 @@
+{% extends '_base.html' %}
+{% from "_all_fields.html" import render_fields %}
+
+{% block main_content %}
+<form id="rcads_form",  method="POST">
+    {{render_fields(form)}}
+    <input type="submit" value="Genereate Table">
+</form>
+{% endblock %}
