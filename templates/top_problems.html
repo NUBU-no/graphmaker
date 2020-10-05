@@ -1,0 +1,16 @@
+{% extends '_base.html' %}
+{% block main_content %}
+
+<h2>RCADS Spørsmål scoret 2 eller høyere</h2>
+
+{% for topic in top_problems %}
+    <h3>{{topic[0]}}</h3>
+
+    <ul>
+    {% for question in topic[1] %}
+    <li> {{question}} </li>
+    {% endfor %}
+    </ul>
+{% endfor %}
+
+{% endblock %}

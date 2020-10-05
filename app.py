@@ -4,6 +4,7 @@ from graphmaker.maker import make_graph, make_file
 from flask import Flask, json, request, jsonify, render_template, send_file
 from wtforms import Form, BooleanField, StringField, validators, IntegerField, widgets, FormField
 import pandas as pd
+from random import randint, shuffle
 from io import BytesIO, StringIO
 app = Flask(__name__)
 
@@ -35,15 +36,17 @@ class Rcads_q(Form):
     score = IntegerField('Score', validators=[validators.NumberRange(min=0,max=5)])
 
 class Rcads_form(Form):
-    age = IntegerField()
+    age = IntegerField(default=99)
     qs = FieldList(FormField(Rcads_q))
     #qs = FieldList(IntegerField('score'), min_entries=6)
 
 
 class Pre_questionnaire_form(Form):
-    age = IntegerField()
+    age = IntegerField(default=99)
     questionnaire = SelectField('sdq, Eiberg or RCADS', choices=['SDQ','RCADS','Eiberg'])
-    excel_field=StringField('Excel Paste', widget=TextArea(), default='1\t2\t3\t3\t0\t0')
+    shuffle_list = ['0']*20+['1']*20+['2']*5+['3']*2
+    shuffle(shuffle_list)
+    excel_field=StringField('Excel Paste', widget=TextArea(), default='\t'.join(shuffle_list))
     #inline_form = FormField()
 
 
@@ -60,7 +63,7 @@ def pre_q_form():
         generated_form.age.data = form.age.data
         scores = form.excel_field.data.split('\t')
         with app.open_resource('static/items.txt') as f:
-            questiontexts = f.read().split(b'\n')
+            questiontexts = [byteline.decode('utf-8') for byteline in f.read().split(b'\n')]
         for score, text in zip(scores, questiontexts):
             scoreForm = Rcads_q()
             scoreForm.score.data=score
@@ -102,7 +105,16 @@ def excelpaste():
 def single_items():
     form = Rcads_form(request.form)
     if request.method == 'POST' and form.validate():
-        return 'You posted'
+        sorted_qs = json.load(open('static/sorted_qs.json'))
+        top_problems_id = [i for i,q in enumerate(form.data['qs']) if q['score'] >= 2]
+        my_sorted_qs = [[topic[0], []] for topic in sorted_qs]
+
+        for i, topic in enumerate(sorted_qs):
+            for q in topic[1]:
+                if q[0] in top_problems_id:
+                    my_sorted_qs[i][1].append(q[1])
+
+        return render_template('top_problems.html', top_problems=my_sorted_qs)
     else:
         return render_template('rcads.html', form=form)
 
